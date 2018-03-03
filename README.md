@@ -8,7 +8,7 @@ Visual Studio 2017 (earlier versions not tested).
 
 ## Installation
 
-Load the MusicGenie.sln in Visual Studio.
+Load the MusicGenie/MusicGenie.sln in Visual Studio.
 
 Run the server with F5 (or the green arrow).
 Your default browser should open at an index page used for demonstrating the service.
