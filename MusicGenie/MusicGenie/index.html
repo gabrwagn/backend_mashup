@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Music Genie</title>
+</head>
+<body>
+
+    <div>
+        <h2>Request by MBID</h2>
+        <input type="text" id="mbid" size="40" />
+        <input type="button" value="Get Info" onclick="find();" />
+    </div>
+
+    <div>
+        <h3>Artist</h3>
+        <p id="artist"></p>
+        <h3>Description</h3>
+        <div id="desc"></div>
+        <h3>Albums</h3>
+        <ul id="albums" />
+    </div>
+
+
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script>
+        var uri = 'api/artist';
+
+        function find() {
+            var name = $('#mbid').val();
+            $.getJSON(uri + '/' + name)
+                .done(function (data) {
+                    console.log(data);
+                    $('#artist').text(data.name);
+
+                    $('#desc').html("");
+                    $(data.description).appendTo('#desc');
+
+                    $('#albums').html("");
+                    $.each(data.albums, function (key, item) {
+                        $('<li>', { text: item.title }).appendTo($('#albums'));
+                        $('<img src=\"' + item.image + '\" height="128" width="128">').appendTo($('<li>')).appendTo($('#albums'));
+                    });
+                })
+                .fail(function (jqXHR, textStatus, err) {
+                    $('#artist').text('Error: ' + err);
+                });
+        }
+    </script>
+</body>
+</html>
