@@ -1,4 +1,6 @@
-﻿using MusicGenie.Models;
+﻿// Author: gabrwagn
+
+using MusicGenie.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -10,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Hqub.MusicBrainz.API;
-
 
 
 namespace MusicGenie.Controllers
