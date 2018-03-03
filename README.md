@@ -1,5 +1,7 @@
 # backend_mashup
 
+Small proof of concept for home assignment.
+
 ## Requirements: 
 
 Visual Studio 2017 (earlier versions not tested).
