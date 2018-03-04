@@ -69,32 +69,41 @@ namespace MusicGenie.Controllers
                     wikipedia_name = wiki_url.Split('/').Last();
                 }
             }
+            // Send request and keep going, await response later
+            Task<string> wikiPediaInfoTask = GetWikipediaInfo(wikipedia_name);
 
-            // Parse albums from JSON
-            List<AlbumInfo> albumsInfo = new List<AlbumInfo>();
+            // Create requests for cover art for each album
+            Dictionary<AlbumInfo, Task<string>> albumCoverTasks = new Dictionary<AlbumInfo, Task<string>>();
             foreach (JToken token in musicBrainzJson.SelectToken("release-groups"))
             {
-                // Sleep 1 second to avoid exceeding 1 request per second.
+                // Wait one second and make next request
                 Thread.Sleep(1000);
 
-                // Construct album info
+                // Construct initial album info, get Cover Art Link later
                 string albumId = TrySelectToken(token, "id");
                 AlbumInfo albumInfo = new AlbumInfo()
                 {
                     Id = albumId,
                     Title = TrySelectToken(token, "title"),
-                    Image = await GetCoverArtLink(albumId),
                 };
+                albumCoverTasks[albumInfo] = GetCoverArtLink(albumId);
+            }
+            // Await each Cover Art Link and finalize each album info
+            List<AlbumInfo> albumsInfo = new List<AlbumInfo>();
+            foreach(KeyValuePair<AlbumInfo, Task<string>> entry in albumCoverTasks)
+            {
+                AlbumInfo albumInfo = entry.Key;
+                albumInfo.Image = await entry.Value;
                 albumsInfo.Add(albumInfo);
             }
 
-            // Construct artist info
+            // Construct artist info (make sure wikipedia info arrived)
             ArtistInfo artistInfo = new ArtistInfo()
             {
                 Name = TrySelectToken(musicBrainzJson, "name"),
                 Mbid = mbid,
                 Albums = albumsInfo,
-                Description = await GetWikipediaInfo(wikipedia_name),
+                Description = await wikiPediaInfoTask,
             };
 
             return artistInfo;
