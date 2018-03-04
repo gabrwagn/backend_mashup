@@ -31,8 +31,15 @@ To make requests from other applications etc. the url to make the GET-request to
 ```
 http://HOSTNAME:PORT/api/artist/MBID
 ```
+
 By default hostname is "localhost" and port "55217" which can be verified on the index page url.
-Naturally MBID should be replaced by the corresponding MBID of the artist retrieve info about.
+Naturally MBID should be replaced by some valid artist MBID.
+
+Example:
+
+```
+http://localhost:55217/api/artist/83d91898-7763-47d7-b03b-b92132375c47
+```
 
 ## Acknowledgements
 
