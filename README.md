@@ -2,6 +2,8 @@
 
 Small proof of concept for home assignment.
 
+Quick summary: Mash together apis that serve Album information, Cover Art and Wikipedia summary into a neat JSON package.
+
 ## Requirements: 
 
 Visual Studio 2017 (earlier versions not tested).
