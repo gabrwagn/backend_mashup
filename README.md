@@ -44,7 +44,10 @@ http://localhost:55217/api/artist/83d91898-7763-47d7-b03b-b92132375c47
 ## Acknowledgements
 
 I have used three files from a repository built for communicating with MusicBrainz for C#;
+
 https://github.com/avatar29A/MusicBrainz
+
+Author: avatar29A
 
 The files are:
 
