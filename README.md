@@ -31,3 +31,16 @@ http://HOSTNAME:PORT/api/artist/MBID
 ```
 By default hostname is "localhost" and port "55217" which can be verified on the index page url.
 Naturally MBID should be replaced by the corresponding MBID of the artist retrieve info about.
+
+## Acknowledgements
+
+I have used three files from a repository built for communicating with MusicBrainz for C#;
+https://github.com/avatar29A/MusicBrainz
+
+The files are:
+
+1. MyHttpClient.cs
+2. ReadableException.cs
+3. HttpClientException.cs
+
+While the repository has many useful functions I chose to only include these files for QoL, and integrated them into my own solution.
