@@ -11,7 +11,7 @@ namespace MusicGenie.Models
         public List<AlbumInfo> Albums { get; set; }
     }
 
-    public struct AlbumInfo
+    public class AlbumInfo
     {
         public string Title { get; set; }
         public string Id { get; set; }

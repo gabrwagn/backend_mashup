@@ -1,0 +1,83 @@
+﻿<!-- Author: gabrwagn -->
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Music Genie</title>
+</head>
+<body>
+
+    <div>
+        <h2>Run multiple requests</h2>
+        <input type="text" id="mbid" size="40" />
+        <input type="text" id="count" size="15" />
+        <input type="button" value="Make Requests" onclick="run();" />
+    </div>
+
+    <div>
+        <h3>Status</h3>
+        <p id="succ"></p>
+        <p id="fail"></p>
+    </div>
+
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script>
+
+        function run() {
+
+            var count = $('#count').val();
+
+            var success = 0;
+            var fail = 0;
+
+            var mbids = [
+                "53b106e7-0cc6-42cc-ac95-ed8d30a3a98e",
+                "cc197bad-dc9c-440d-a5b5-d52ba2e14234",
+                "ca891d65-d9b0-4258-89f7-e6ba29d83767",
+                "83d91898-7763-47d7-b03b-b92132375c47",
+                "8bfac288-ccc5-448d-9573-c33ea2aa5c30",
+                "86437518-fca1-4117-b698-b371b72d76a5",
+                "0b51c328-1f2b-464c-9e2c-0c2a8cce20ae",
+                "f4d5cc07-3bc9-4836-9b15-88a08359bc63",
+                "650e7db6-b795-4eb5-a702-5ea2fc46c848"
+            ]
+
+
+            console.log("Starting " + count + " requests.");
+            for (i = 0; i < count; i++) {
+                var uri = 'genie/artist/' + getRandom(mbids, 1)[0];
+                $.getJSON(uri)
+                    .done(function (data) {
+                        success = success + 1;
+                
+                        $('#fail').text("Fail percent: " + fail / (success + fail) * 100);
+                        $('#succ').text("Success percent: " + success / (success + fail) * 100);
+                        console.log("success.")
+                    })
+                    .fail(function (jqXHR, textStatus, err) {
+                        fail = fail + 1; 
+                
+                        $('#fail').text("Fail percent: " + fail / (success + fail) * 100);
+                        $('#succ').text("Success percent: " + success / (success + fail) * 100);
+                        console.log("fail.")
+                    });
+            }
+        }
+
+        function getRandom(arr, n) {
+            var result = new Array(n),
+                len = arr.length,
+                taken = new Array(len);
+            if (n > len)
+                throw new RangeError("getRandom: more elements taken than available");
+            while (n--) {
+                var x = Math.floor(Math.random() * len);
+                result[n] = arr[x in taken ? taken[x] : x];
+                taken[x] = --len in taken ? taken[len] : len;
+            }
+            return result;
+        }
+
+    </script>
+</body>
+</html>
