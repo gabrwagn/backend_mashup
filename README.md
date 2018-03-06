@@ -2,7 +2,7 @@
 
 Small proof of concept for home assignment.
 
-Quick summary: Mash together apis that serve Album information, Cover Art and Wikipedia summary into a neat JSON package.
+Quick summary: Mash together apis that serve Album Information, Cover Art and Wikipedia summary into a neat JSON package.
 
 ## Requirements: 
 
@@ -29,7 +29,7 @@ The shown data is:
 To make requests from other applications etc. the url to make the GET-request to is:
 
 ```
-http://HOSTNAME:PORT/api/artist/MBID
+http://HOSTNAME:PORT/genie/artist/MBID
 ```
 
 By default hostname is "localhost" and port "55217" which can be verified on the index page url.
@@ -38,21 +38,12 @@ Naturally MBID should be replaced by some valid artist MBID.
 Example:
 
 ```
-http://localhost:55217/api/artist/83d91898-7763-47d7-b03b-b92132375c47
+http://localhost:55217/genie/artist/83d91898-7763-47d7-b03b-b92132375c47
 ```
 
-## Acknowledgements
+## Features
 
-I have used three files from a repository built for communicating with MusicBrainz for C#;
+Subsequent requests made from this service use caching and retries with exponential backoff.
 
-https://github.com/avatar29A/MusicBrainz
+This is to minimize load on MusicBrainz servers which only allow a set amount of requests per second.
 
-Author: avatar29A
-
-The files are:
-
-1. MyHttpClient.cs
-2. ReadableException.cs
-3. HttpClientException.cs
-
-While the repository has many useful functions I chose to only include these files for QoL, and integrated them into my own solution.
