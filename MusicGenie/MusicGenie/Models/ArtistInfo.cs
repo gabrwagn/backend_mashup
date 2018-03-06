@@ -1,5 +1,4 @@
-﻿// Author: gabrwagn
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace MusicGenie.Models
 {

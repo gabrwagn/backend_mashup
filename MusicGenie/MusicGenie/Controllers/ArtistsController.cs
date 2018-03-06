@@ -1,6 +1,4 @@
-﻿// Author: gabrwagn
-
-using MusicGenie.Models;
+﻿using MusicGenie.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -16,15 +14,15 @@ namespace MusicGenie.Controllers
 {
     public class ArtistController : ApiController
     {
-
         private MyHttpClient _client;
-        private ICacheService _cache;
+
 
         public ArtistController()
         {
-            _cache = new InMemoryCache();
-            _client = new MyHttpClient(_cache);
+            int chacheTimeMinutes = 10;
+            _client = new MyHttpClient(new InMemoryCache(chacheTimeMinutes));
         }
+
 
         /// <summary>
         /// Method that is called upon a GET request.

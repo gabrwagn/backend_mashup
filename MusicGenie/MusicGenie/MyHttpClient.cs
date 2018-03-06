@@ -1,23 +1,16 @@
-﻿/*
- * Copyright (c) 2013 avatar29A
- * Edited by gabrwagn
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
 using MusicGenie;
 
 namespace Hqub.MusicBrainz.API
 {
+    /// <summary>
+    /// Class used for sending http requests.
+    /// Implements optional caching and retry methods.
+    /// </summary>
     public class MyHttpClient
     {
         public const string UserAgent = "MusicGenie/1.0 (gabrwagn@gmail.com)";
@@ -35,17 +28,27 @@ namespace Hqub.MusicBrainz.API
             _cache = cache;
             _httpClient = new HttpClient();
 
-            _maxRetries = 10;
+            _maxRetries = 6;
             _delayMilliseconds = 300;
             _maxDelayMilliseconds = 5000;
            
         }
 
+        /// <summary>
+        /// Method for checking cached responses to requests, otherwise sending a new request.
+        /// </summary>
+        /// <param name="url"> Request destination </param>
+        /// <returns> String with content of the response or cache, failed requests return empty strings. </returns>
         public async Task<string> SendRequestAsync(string url)
         {
             return await _cache.GetOrSet(url, () => SendRequestAsyncUncached(url));
         }
 
+        /// <summary>
+        /// Method for sending a request.
+        /// </summary>
+        /// <param name="url"> Request destination </param>
+        /// <returns> String with content of the response, failed requests return empty strings </returns>
         public async Task<string> SendRequestAsyncUncached(string url)
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, new Uri(url));
@@ -62,6 +65,13 @@ namespace Hqub.MusicBrainz.API
             return await response.Content.ReadAsStringAsync();
         }
 
+        /// <summary>
+        /// Method for sending a request with cache and retries on failed requests.
+        /// Uses exponential backoff until max retries is reached.
+        /// Uses cached request method.
+        /// </summary>
+        /// <param name="url"> Destination url </param>
+        /// <returns> String with content of the response or cache, failed requests return empty strings. </returns>
         public async Task<string> RetryWithExponentialBackoff(string url)
         {
             ExponentialBackoff backoff = new ExponentialBackoff(_maxRetries, _delayMilliseconds, _maxDelayMilliseconds);
@@ -69,35 +79,40 @@ namespace Hqub.MusicBrainz.API
             retry:
             try
             {
-                string response = await SendRequestAsync(url);
-               
-
-                return response;
+                return await SendRequestAsync(url);
             }
-            catch (TimeoutException e)
+            catch (HttpResponseException e) when (!backoff.MaxReached)
             {
-                return "";
-            }
-            catch (HttpResponseException e)
-            {
+                // Dont retry on non-existent result
                 if (e.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     return "";
                 }
 
-                Debug.WriteLine("HttpResponseException –Message: " + e.Response.StatusCode);
+                Debug.WriteLine("HttpResponseException StatusCode: " + e.Response.StatusCode);
                 await backoff.Delay();
                 goto retry;
             }
-           
-
+            catch(Exception e)
+            {
+                // Max tries reached or non-httpresponseexception
+                return "";
+            }
         }
     }
 
+    /// <summary>
+    /// Helper class for creating exponential backoff delays.
+    /// </summary>
     public struct ExponentialBackoff
     {
         private readonly int m_maxRetries, m_delayMilliseconds, m_maxDelayMilliseconds;
         private int m_retries, m_pow;
+
+        public bool MaxReached
+        {
+            get { return m_retries >= m_maxRetries;  }
+        }
 
         public ExponentialBackoff(int maxRetries, int delayMilliseconds, int maxDelayMilliseconds)
         {
@@ -110,10 +125,6 @@ namespace Hqub.MusicBrainz.API
 
         public Task Delay()
         {
-            if (m_retries == m_maxRetries)
-            {
-                throw new TimeoutException("Max retry attempts exceeded.");
-            }
             ++m_retries;
             if (m_retries < 31)
             {
