@@ -1,6 +1,6 @@
-# backend_mashup
+# MusicGenie (backend_mashup)
 
-Small proof of concept for home assignment.
+Small proof of concept for home assignment which I nicknamed MusicGenie.
 
 Quick summary: Mash together apis that serve Album Information, Cover Art and Wikipedia summary into a neat JSON package.
 
