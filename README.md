@@ -6,7 +6,10 @@ Quick summary: Mash together apis that serve Album Information, Cover Art and Wi
 
 ## Requirements: 
 
-Visual Studio 2017 (earlier versions not tested).
+1. Visual Studio 2017 (earlier versions not tested).
+2. ASP.NET Web Application (.Net Framework)
+
+If any package issues are present, instructions are in the **Packages** section in the bottom of the *README*.
 
 ## Installation
 
@@ -24,9 +27,11 @@ The shown data is:
 2. Artist summary (from Wikipedia)
 3. Albums with art (list)
 
-## Making a request
+Additionally, the website prints the full JSON in the browser's  console, which can be opened by pressing F12 in most modern browsers.
 
-To make requests from other applications etc. the url to make the GET-request to is:
+## API (making a request and so on)
+
+The REST-api url for making (GET only) requests is:
 
 ```
 http://HOSTNAME:PORT/genie/artist/MBID
@@ -41,6 +46,8 @@ Example:
 http://localhost:55217/genie/artist/83d91898-7763-47d7-b03b-b92132375c47
 ```
 
+Failed requests (invalid MBID, artist not found on MusicBrainz etc.) will result in a 404 Not Found status code.
+
 ## Features
 
 Subsequent requests made from this service use caching and retries with exponential backoff.
@@ -52,7 +59,29 @@ By specifying the number of requests to be made the page will show how many retu
 The page generates requests drawn from a pool of 5 unique MBIDs, meaning caching will quickly kick in and solve the load problem.
 To properly test the load more mbids should be added.
 
-# Left out of proof of concept
+## Packages 
 
-I chose to have in memory caching instead of storing anything in a database since this is a proof of concept.
-Additionally a larger range of tests should be performed in a real solution. Such as generating heavy load etc.
+These should already be included and working in the project.
+No installation SHOULD be required, unfortunately I am not 100% sure how other systems behave by default.
+
+The NuGet packages used are default for a VS Web Application:
+1. Microsoft.AspNet.WebApi
+2. Microsoft.AspNet.WebApi.Client
+3. Microsoft.AspNet.WebApi.WebHost
+4. Microsoft.CodeDom.Providers.DotNetCompilerPlatform
+5. Microsoft.Net.Compilers
+6. Newtonsoft.Json
+
+If for some reason the project says a package is missing it can be downloaded in Visual Studio:
+
+```
+Tools -> NuGet Package Manager -> Manage NuGet Packages for Solution
+```
+
+There should be a button for downloading any missing packages with the text "Restore".
+If that does not work, or "restore" is not found the packages should be installable manually:
+
+```
+Tools -> NuGet Package Manager -> Package Manager Console
+In the console type: Install-Package [PACKAGE NAME]
+```
