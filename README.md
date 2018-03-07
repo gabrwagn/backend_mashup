@@ -56,8 +56,7 @@ This is to minimize load on MusicBrainz servers which only allow a set amount of
 
 I created a simple page for running a minor load test hosted at http://localhost:55217/benchmark.html.
 By specifying the number of requests to be made the page will show how many return successfully.
-The page generates requests drawn from a pool of 5 unique MBIDs, meaning caching will quickly kick in and solve the load problem.
-To properly test the load more mbids should be added.
+The page generates requests drawn from a pool of 9 unique MBIDs (hardcoded), meaning caching will quickly kick in and solve the load problem. To properly test the load more mbids should be added or caching turned off, however this risks throttling from MusicBrainz.
 
 ## Packages 
 
