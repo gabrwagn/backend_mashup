@@ -62,9 +62,10 @@ To properly test the load more mbids should be added.
 ## Packages 
 
 These should already be included and working in the project.
-No installation SHOULD be required, unfortunately I am not 100% sure how other systems behave by default.
+No installation SHOULD be required under "normal" circumstances.
+However since Visual Studio can be installed with different modules (C++, C#, Python) and so on I chose to specify them below.
+Again, they should already be installed or be automatically restored if the previously requirements are met (ASP.NET Web Api).
 
-The NuGet packages used are default for a VS Web Application:
 1. Microsoft.AspNet.WebApi
 2. Microsoft.AspNet.WebApi.Client
 3. Microsoft.AspNet.WebApi.WebHost
