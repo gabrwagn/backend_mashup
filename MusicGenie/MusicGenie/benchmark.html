@@ -9,8 +9,8 @@
 
     <div>
         <h2>Run multiple requests</h2>
-        <input type="text" id="mbid" size="40" />
-        <input type="text" id="count" size="15" />
+        <h3>Request count:</h3>
+        <input type="text" id="count" size="10" />
         <input type="button" value="Make Requests" onclick="run();" />
     </div>
 
@@ -57,8 +57,8 @@
                     .fail(function (jqXHR, textStatus, err) {
                         fail = fail + 1; 
                 
-                        $('#fail').text("Fail percent: " + fail / (success + fail) * 100);
-                        $('#succ').text("Success percent: " + success / (success + fail) * 100);
+                        $('#fail').text("Fail percent: " + fail / (success + fail) * 100 + "%");
+                        $('#succ').text("Success percent: " + success / (success + fail) * 100 + "%");
                         console.log("fail.")
                     });
             }

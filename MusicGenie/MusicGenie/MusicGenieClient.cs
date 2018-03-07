@@ -3,15 +3,15 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
-using MusicGenie;
 
-namespace Hqub.MusicBrainz.API
-{
+namespace MusicGenie
+{ 
+
     /// <summary>
     /// Class used for sending http requests.
     /// Implements optional caching and retry methods.
     /// </summary>
-    public class MyHttpClient
+    public class MusicGenieClient
     {
         public const string UserAgent = "MusicGenie/1.0 (gabrwagn@gmail.com)";
 
@@ -23,14 +23,19 @@ namespace Hqub.MusicBrainz.API
         private readonly int _maxDelayMilliseconds;
 
 
-        public MyHttpClient(ICacheService cache)
+        public MusicGenieClient(ICacheService cache)
         {
             _cache = cache;
             _httpClient = new HttpClient();
 
-            _maxRetries = 6;
-            _delayMilliseconds = 300;
-            _maxDelayMilliseconds = 5000;
+            // MusicBrainz unclear on rules
+            // Either 50 or 1 request per second.
+            // Values chosen somewhere inbetween, backoff should smooth out any problems.
+            _maxRetries = 8;
+            _delayMilliseconds = 50; // 20 requests per second
+            _maxDelayMilliseconds = 5000; // 1 request per 5 seconds max
+
+            // Future idea: Scale delay by current load / pending requests
            
         }
 
@@ -72,7 +77,7 @@ namespace Hqub.MusicBrainz.API
         /// </summary>
         /// <param name="url"> Destination url </param>
         /// <returns> String with content of the response or cache, failed requests return empty strings. </returns>
-        public async Task<string> RetryWithExponentialBackoff(string url)
+        public async Task<string> SendResilientRequestAsync(string url)
         {
             ExponentialBackoff backoff = new ExponentialBackoff(_maxRetries, _delayMilliseconds, _maxDelayMilliseconds);
 

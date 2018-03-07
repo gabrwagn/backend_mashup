@@ -35,7 +35,7 @@
             $('#status').text('Processing request...');
             var uri = 'genie/artist/' + $('#mbid').val(); 
 
-            console.log(uri);
+            console.log("Request sent to: " + uri);
             $.getJSON(uri)
                 .done(function (data) {
                     console.log(data);

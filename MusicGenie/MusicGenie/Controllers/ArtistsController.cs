@@ -7,20 +7,20 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Hqub.MusicBrainz.API;
 using Newtonsoft.Json;
 
 namespace MusicGenie.Controllers
 {
     public class ArtistController : ApiController
     {
-        private MyHttpClient _client;
+        private MusicGenieClient _client;
 
 
         public ArtistController()
         {
             int chacheTimeMinutes = 10;
-            _client = new MyHttpClient(new InMemoryCache(chacheTimeMinutes));
+            _client = new MusicGenieClient(new InMemoryCache(chacheTimeMinutes));
+            // Future idea: Allow API to request uncached (for those who want the latest)
         }
 
 
@@ -109,7 +109,6 @@ namespace MusicGenie.Controllers
             return artistInfo;
         }
 
-
         /// <summary>
         /// Method for generating a generic request that return a JSON formatted response.
         /// </summary>
@@ -120,7 +119,7 @@ namespace MusicGenie.Controllers
             string content = "";
             try
             {
-                content = await _client.RetryWithExponentialBackoff(url);
+                content = await _client.SendResilientRequestAsync(url);
 
                 if ((content.StartsWith("{") && content.EndsWith("}")) ||
                     (content.StartsWith("[") && content.EndsWith("]")))
@@ -213,11 +212,11 @@ namespace MusicGenie.Controllers
        
 
         /// <summary>
-        /// Methods for trying to get a token from a JObject/JToken and casts it to a string.
+        /// Helper method for trying to get a token from a JObject/JToken and return its content as a string.
         /// </summary>
         /// <param name="json"> JSON object to attempt selection from. </param>
         /// <param name="path"> key/index path to the selected token. </param>
-        /// <returns> string containing content of selected token if present, else empty string. </returns>
+        /// <returns> string content of selected token if present, else empty string. </returns>
         private string TrySelectToken(JToken json, string path)
         {
             JToken token = json.SelectToken(path);
