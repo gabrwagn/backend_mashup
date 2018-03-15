@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicGenie", "MusicGenie\MusicGenie.csproj", "{09024258-B12D-4450-84F1-EE3999348C8B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicGenie.Tests", "MusicGenieTests\MusicGenie.Tests.csproj", "{88C3FBD9-649A-4BB8-94A5-A397FB65595D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,6 +20,12 @@ Global
 		{09024258-B12D-4450-84F1-EE3999348C8B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{09024258-B12D-4450-84F1-EE3999348C8B}.Travis|Any CPU.ActiveCfg = Release|Any CPU
 		{09024258-B12D-4450-84F1-EE3999348C8B}.Travis|Any CPU.Build.0 = Release|Any CPU
+		{88C3FBD9-649A-4BB8-94A5-A397FB65595D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88C3FBD9-649A-4BB8-94A5-A397FB65595D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88C3FBD9-649A-4BB8-94A5-A397FB65595D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88C3FBD9-649A-4BB8-94A5-A397FB65595D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88C3FBD9-649A-4BB8-94A5-A397FB65595D}.Travis|Any CPU.ActiveCfg = Release|Any CPU
+		{88C3FBD9-649A-4BB8-94A5-A397FB65595D}.Travis|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -16,11 +16,23 @@ namespace MusicGenie.Controllers
         private MusicGenieClient _client;
 
 
+        /// <summary>
+        /// Default constructor with 10 minute InMemoryCaching
+        /// </summary>
         public ArtistController()
         {
-            int chacheTimeMinutes = 10;
-            _client = new MusicGenieClient(new InMemoryCache(chacheTimeMinutes));
-            // Future idea: Allow API to request uncached (for those who want the latest)
+            int cacheTimeMinutes = 10;
+            InMemoryCache cache = new InMemoryCache(cacheTimeMinutes);
+            _client = new MusicGenieClient(cache);
+        }
+
+        /// <summary>
+        /// Custom cache constructor for dependency injection
+        /// </summary>
+        /// <param name="cache"></param>
+        public ArtistController(MusicGenieClient client)
+        {
+            _client = client;
         }
 
 
@@ -48,7 +60,7 @@ namespace MusicGenie.Controllers
         /// </summary>
         /// <param name="artistMbid"> MBID of requested artist. </param>
         /// <returns> ArtistInfo container for the requested artist. </returns>
-        private async Task<ArtistInfo> BuildArtistInfo(string artistMbid)
+        public async Task<ArtistInfo> BuildArtistInfo(string artistMbid)
         {
             // Attempt to get artist information from MusicBrainz
             // Await request immediately as it is needed for subsequent requests
@@ -64,10 +76,10 @@ namespace MusicGenie.Controllers
             string wikipedia_name = "";
             foreach (JToken token in musicBrainzJson.SelectToken("relations"))
             {
-                string type = TrySelectToken(token, "type");
+                string type = JsonHelper.TrySelectToken(token, "type");
                 if (type == "wikipedia")
                 {
-                    string wiki_url = TrySelectToken(token, "url.resource");
+                    string wiki_url = JsonHelper.TrySelectToken(token, "url.resource");
                     wikipedia_name = wiki_url.Split('/').Last();
                 }
             }
@@ -78,11 +90,11 @@ namespace MusicGenie.Controllers
             Dictionary<AlbumInfo, Task<string>> albumCoverTasks = new Dictionary<AlbumInfo, Task<string>>();
             foreach (JToken token in musicBrainzJson.SelectToken("release-groups"))
             {
-                string albumId = TrySelectToken(token, "id");
+                string albumId = JsonHelper.TrySelectToken(token, "id");
                 AlbumInfo albumInfo = new AlbumInfo()
                 {
                     Id = albumId,
-                    Title = TrySelectToken(token, "title"),
+                    Title = JsonHelper.TrySelectToken(token, "title"),
                 };
 
                 albumCoverTasks[albumInfo] = GetCoverArtLink(albumId);
@@ -100,7 +112,7 @@ namespace MusicGenie.Controllers
             // Construct artist info (make sure wikipedia request replied)
             ArtistInfo artistInfo = new ArtistInfo()
             {
-                Name = TrySelectToken(musicBrainzJson, "name"),
+                Name = JsonHelper.TrySelectToken(musicBrainzJson, "name"),
                 Mbid = artistMbid,
                 Albums = albumsInfo,
                 Description = await wikiDescriptionTask,
@@ -114,32 +126,21 @@ namespace MusicGenie.Controllers
         /// </summary>
         /// <param name="url"> URL of the request. </param>
         /// <returns> JObject response if successfull, else null. </returns>
-        private async Task<JToken> CreateGetRequest(string url)
+        public async Task<string> MakeRequest(string url)
         {
             string content = "";
             try
             {
-                content = await _client.SendResilientRequestAsync(url);
-
-                if ((content.StartsWith("{") && content.EndsWith("}")) ||
-                    (content.StartsWith("[") && content.EndsWith("]")))
-                {
-                    return JToken.Parse(content);
-                }
-                else
-                {
-                    // Non-valid json format in response
-                    return null;
-                }
+                return await _client.SendResilientRequestAsyncCached(url);
+            }
+            catch (HttpResponseException e)
+            {
+                // Bad request / not found
+                return null;
             }
             catch (TimeoutException e)
             {
                 // Max retries exceeded
-                return null;
-            }
-            catch (JsonReaderException e)
-            {
-                // Non-valid json format in response
                 return null;
             }
         }
@@ -149,11 +150,13 @@ namespace MusicGenie.Controllers
         /// </summary>
         /// <param name="artistMbid"> MBID of requested artist. </param>
         /// <returns> JObject if request is successful, else null. </returns>
-        private async Task<JToken> GetMusicBrainzJson(string artistMbid)
+        public async Task<JToken> GetMusicBrainzJson(string artistMbid)
         {   
             string musicBrainzRequestUrl = String.Format("http://musicbrainz.org/ws/2/artist/{0}?&fmt=json&inc=url-rels+release-groups", artistMbid);
 
-            JToken json = await CreateGetRequest(musicBrainzRequestUrl);
+            string response = await MakeRequest(musicBrainzRequestUrl);
+            JToken json = JsonHelper.TryParseJson(response);
+
             if (json != null)
                 return json;
             else
@@ -170,14 +173,15 @@ namespace MusicGenie.Controllers
         /// </summary>
         /// <param name="albumMbid"> MBID of album to be requested. </param>
         /// <returns> string with image link if successfull request, else empty string. </returns>
-        private async Task<string> GetCoverArtLink(string albumMbid)
+        public async Task<string> GetCoverArtLink(string albumMbid)
         {
             string coverArtRequestUrl = "http://coverartarchive.org/release-group/" + albumMbid;
 
             // Wait before making request (MusicBrainz max 50 req per sec for anon user agents)
-            JToken coverArtJson = await CreateGetRequest(coverArtRequestUrl);
-            if (coverArtJson != null)
-                return TrySelectToken(coverArtJson, "images[0].image");
+            string response = await MakeRequest(coverArtRequestUrl);
+            JToken json = JsonHelper.TryParseJson(response);
+            if (json != null)
+                return JsonHelper.TrySelectToken(json, "images[0].image");
             else
             {
                 // Request failed
@@ -191,15 +195,16 @@ namespace MusicGenie.Controllers
         /// </summary>
         /// <param name="artist"> artist/band string as specified in wikipedia url. </param>
         /// <returns> string containing html summary if successfull, else empty string. </returns>
-        private async Task<string> GetWikipediaInfo(string artist)
+        public async Task<string> GetWikipediaInfo(string artist)
         {
-            string uri = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles={0}";
-            uri = String.Format(uri, artist);
+            string wikiRequestUrl = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles={0}";
+            wikiRequestUrl = String.Format(wikiRequestUrl, artist);
 
-            JToken json = await CreateGetRequest(uri);
+            string response = await MakeRequest(wikiRequestUrl);
+            JToken json = JsonHelper.TryParseJson(response);
             if (json != null)
             {
-                return TrySelectToken(json, "query.pages.*.extract");
+                return JsonHelper.TrySelectToken(json, "query.pages.*.extract");
             }
             else
             {
@@ -207,24 +212,55 @@ namespace MusicGenie.Controllers
                 Debug.WriteLine("Failed to get wiki artist information");
                 return ""; 
             }
-           
         }
-       
 
+    }
+
+    public class JsonHelper
+    {
         /// <summary>
         /// Helper method for trying to get a token from a JObject/JToken and return its content as a string.
         /// </summary>
         /// <param name="json"> JSON object to attempt selection from. </param>
         /// <param name="path"> key/index path to the selected token. </param>
         /// <returns> string content of selected token if present, else empty string. </returns>
-        private string TrySelectToken(JToken json, string path)
+        public static string TrySelectToken(JToken json, string path)
         {
             JToken token = json.SelectToken(path);
-            if (token != null)
-                return token.Value<string>();
+            string content = "";
 
-            return "";
+            if (token != null)
+                content = token.Value<string>();
+
+            return content;
         }
 
+        /// <summary>
+        /// Helper method for trying to parse a string into a JToken object, returns null on failure.
+        /// </summary>
+        /// <param name="content"> JSON string to parse. </param>
+        /// <returns> parsed JToken object. </returns>
+        public static JToken TryParseJson(string jsonString)
+        {
+            if ((jsonString.StartsWith("{") && jsonString.EndsWith("}")) ||
+                (jsonString.StartsWith("[") && jsonString.EndsWith("]")))
+            {
+                try
+                {
+                    return JToken.Parse(jsonString); ;
+                }
+                catch (JsonReaderException e)
+                {
+                    // Non-valid json format in response
+                    return null;
+                }
+            }
+            else
+            {
+                // Non-valid json format in response
+                return null;
+            }
+            
+        }
     }
 }
